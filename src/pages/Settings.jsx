@@ -82,7 +82,7 @@ export default function Settings({
           </div>
           <div className="settings-info-row">
             <span className="settings-info-label">저장 방식</span>
-            <span className="settings-info-value">LocalStorage</span>
+            <span className="settings-info-value">Supabase (공용 DB)</span>
           </div>
           <div className="settings-info-row">
             <span className="settings-info-label">기술 스택</span>

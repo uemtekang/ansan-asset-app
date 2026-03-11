@@ -5,15 +5,15 @@ import Dashboard from './pages/Dashboard';
 import DataManager from './pages/DataManager';
 import SearchList from './pages/SearchList';
 import Settings from './pages/Settings';
-import { useLocalStorage } from './hooks/useLocalStorage';
-import { STORAGE_KEY } from './utils/constants';
+import { useSupabaseAssets } from './hooks/useSupabaseAssets';
 import { generateId } from './utils/helpers';
 import { exportToJson } from './utils/export';
 import { SAMPLE_DATA } from './data/sampleData';
 import './styles/app.css';
 
 export default function App() {
-  const [items, setItems, removeItems] = useLocalStorage(STORAGE_KEY, []);
+  const { items, loading, addItem, updateItem, deleteItem, resetData, insertMany } =
+    useSupabaseAssets();
   const [currentPage, setCurrentPage] = useState('searchList');
   const [editingItem, setEditingItem] = useState(null);
 
@@ -22,25 +22,32 @@ export default function App() {
     if (page !== 'dataManager') setEditingItem(null);
   };
 
-  const addItem = (formData) => {
+  const handleAddItem = async (formData) => {
     const now = new Date().toISOString();
     const newItem = { id: generateId(), ...formData, createdAt: now, updatedAt: now };
-    setItems((prev) => [newItem, ...prev]);
+    try {
+      await addItem(newItem);
+    } catch (e) {
+      alert('등록 실패: ' + e.message);
+    }
   };
 
-  const updateItem = (id, formData) => {
-    const now = new Date().toISOString();
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, ...formData, updatedAt: now } : item
-      )
-    );
-    setEditingItem(null);
+  const handleUpdateItem = async (id, formData) => {
+    try {
+      await updateItem(id, formData);
+      setEditingItem(null);
+    } catch (e) {
+      alert('수정 실패: ' + e.message);
+    }
   };
 
-  const deleteItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    if (editingItem?.id === id) setEditingItem(null);
+  const handleDeleteItem = async (id) => {
+    try {
+      await deleteItem(id);
+      if (editingItem?.id === id) setEditingItem(null);
+    } catch (e) {
+      alert('삭제 실패: ' + e.message);
+    }
   };
 
   const startEditItem = (item) => {
@@ -50,20 +57,28 @@ export default function App() {
 
   const cancelEdit = () => setEditingItem(null);
 
-  const resetData = () => {
-    removeItems();
-    setEditingItem(null);
+  const handleResetData = async () => {
+    try {
+      await resetData();
+      setEditingItem(null);
+    } catch (e) {
+      alert('초기화 실패: ' + e.message);
+    }
   };
 
-  const loadSampleData = () => {
+  const handleLoadSampleData = async () => {
     const existingIds = new Set(items.map((i) => i.id));
     const newSamples = SAMPLE_DATA.filter((s) => !existingIds.has(s.id));
     if (newSamples.length === 0) {
       alert('샘플 데이터가 이미 모두 등록되어 있습니다.');
       return;
     }
-    setItems((prev) => [...newSamples, ...prev]);
-    alert(`샘플 데이터 ${newSamples.length}건이 추가되었습니다.`);
+    try {
+      await insertMany(newSamples);
+      alert(`샘플 데이터 ${newSamples.length}건이 추가되었습니다.`);
+    } catch (e) {
+      alert('샘플 불러오기 실패: ' + e.message);
+    }
   };
 
   const exportData = () => {
@@ -83,23 +98,23 @@ export default function App() {
           <DataManager
             items={items}
             editingItem={editingItem}
-            onAdd={addItem}
-            onUpdate={updateItem}
-            onDelete={deleteItem}
+            onAdd={handleAddItem}
+            onUpdate={handleUpdateItem}
+            onDelete={handleDeleteItem}
             onCancelEdit={cancelEdit}
             onStartEdit={startEditItem}
           />
         );
       case 'searchList':
         return (
-          <SearchList items={items} onStartEdit={startEditItem} onDelete={deleteItem} />
+          <SearchList items={items} onStartEdit={startEditItem} onDelete={handleDeleteItem} />
         );
       case 'settings':
         return (
           <Settings
             items={items}
-            onLoadSample={loadSampleData}
-            onResetData={resetData}
+            onLoadSample={handleLoadSampleData}
+            onResetData={handleResetData}
             onExport={exportData}
           />
         );
@@ -113,7 +128,15 @@ export default function App() {
       <Header currentPage={currentPage} onNavigate={handleNavigate} />
       <div className="app-body">
         <Sidebar currentPage={currentPage} onNavigate={handleNavigate} />
-        <div className="app-main">{renderPage()}</div>
+        <div className="app-main">
+          {loading ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>
+              데이터를 불러오는 중...
+            </div>
+          ) : (
+            renderPage()
+          )}
+        </div>
       </div>
     </div>
   );
