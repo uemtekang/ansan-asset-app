@@ -14,7 +14,7 @@ import './styles/app.css';
 
 export default function App() {
   const [items, setItems, removeItems] = useLocalStorage(STORAGE_KEY, []);
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [currentPage, setCurrentPage] = useState('searchList');
   const [editingItem, setEditingItem] = useState(null);
 
   const handleNavigate = (page) => {

@@ -725,55 +725,91 @@ html, body {
 .mt-24 { margin-top: 24px; }
 
 /* =========================================
+   Mobile Tab Bar (기본: 숨김)
+   ========================================= */
+.mobile-tabbar {
+  display: none;
+}
+
+/* =========================================
    Responsive (Mobile)
    ========================================= */
 @media (max-width: 768px) {
-  .app-body {
-    flex-direction: column;
-  }
-
+  /* 사이드바 숨기고 하단 탭바로 대체 */
   .sidebar {
-    width: 100%;
-    height: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
+    display: none;
   }
 
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    padding: 8px;
-    gap: 4px;
-    overflow-x: auto;
+  .mobile-tabbar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: var(--color-sidebar-bg);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 200;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
   }
 
-  .sidebar-item {
-    flex-direction: column;
-    gap: 4px;
-    padding: 8px 10px;
-    font-size: 11px;
-    flex-shrink: 0;
-    min-width: 60px;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .sidebar-icon {
-    font-size: 18px;
-  }
-
-  .app-main {
+  .mobile-tab {
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: none;
+    background: transparent;
+    color: var(--color-sidebar-text);
+    cursor: pointer;
+    font-family: var(--font);
+    padding: 6px 4px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .mobile-tab:hover {
+    background-color: rgba(255,255,255,0.08);
+    color: #fff;
+  }
+
+  .mobile-tab.active {
+    color: #fff;
+    background-color: var(--color-sidebar-active);
+  }
+
+  .mobile-tab-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .mobile-tab-label {
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* 하단 탭바 높이만큼 본문 여백 */
+  .app-main {
+    padding-bottom: 60px;
   }
 
   .page-layout {
-    padding: 16px;
+    padding: 14px;
   }
 
   .stat-grid {
     grid-template-columns: repeat(5, 1fr);
     gap: 8px;
+  }
+
+  .stat-card .card-body {
+    padding: 12px 6px;
+  }
+
+  .stat-value {
+    font-size: 22px;
   }
 
   .dashboard-grid {
@@ -786,7 +822,7 @@ html, body {
 
   .search-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .form-row-2col {
@@ -796,7 +832,7 @@ html, body {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
   }
 
   .settings-action-item {
