@@ -5,13 +5,14 @@ import Select from '../components/common/Select';
 import Card from '../components/common/Card';
 import Table from '../components/common/Table';
 import PageLayout from '../components/layout/PageLayout';
-import { CATEGORY_OPTIONS, STATUS_OPTIONS } from '../utils/constants';
-import { formatDate } from '../utils/helpers';
+import { STATUS_OPTIONS } from '../utils/constants';
 
 const EMPTY_FORM = {
-  title: '',
-  category: 'general',
-  status: 'active',
+  assetNumber: '',
+  assetName: '',
+  acquiredDate: '',
+  location: '창고',
+  status: '보관중',
   memo: '',
 };
 
@@ -28,14 +29,15 @@ export default function DataManager({
   const [errors, setErrors] = useState({});
   const isEditing = !!editingItem;
 
-  // editingItem 변경 시 폼 자동 채우기
   useEffect(() => {
     if (editingItem) {
       setForm({
-        title: editingItem.title || '',
-        category: editingItem.category || 'general',
-        status: editingItem.status || 'active',
-        memo: editingItem.memo || '',
+        assetNumber: editingItem.assetNumber || '',
+        assetName:   editingItem.assetName   || '',
+        acquiredDate: editingItem.acquiredDate || '',
+        location:    editingItem.location    || '창고',
+        status:      editingItem.status      || '보관중',
+        memo:        editingItem.memo        || '',
       });
       setErrors({});
     } else {
@@ -47,16 +49,14 @@ export default function DataManager({
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validate = () => {
     const newErrors = {};
-    if (!form.title.trim()) newErrors.title = '제목을 입력하세요.';
-    if (!form.category) newErrors.category = '카테고리를 선택하세요.';
-    if (!form.status) newErrors.status = '상태를 선택하세요.';
+    if (!form.assetNumber.trim()) newErrors.assetNumber = '관리번호를 입력하세요.';
+    if (!form.assetName.trim())   newErrors.assetName   = '품명을 입력하세요.';
+    if (!form.status)             newErrors.status      = '상태를 선택하세요.';
     return newErrors;
   };
 
@@ -79,10 +79,12 @@ export default function DataManager({
   const handleReset = () => {
     if (isEditing) {
       setForm({
-        title: editingItem.title || '',
-        category: editingItem.category || 'general',
-        status: editingItem.status || 'active',
-        memo: editingItem.memo || '',
+        assetNumber:  editingItem.assetNumber  || '',
+        assetName:    editingItem.assetName    || '',
+        acquiredDate: editingItem.acquiredDate || '',
+        location:     editingItem.location     || '창고',
+        status:       editingItem.status       || '보관중',
+        memo:         editingItem.memo         || '',
       });
     } else {
       setForm(EMPTY_FORM);
@@ -97,64 +99,66 @@ export default function DataManager({
   };
 
   const tableColumns = [
-    { key: 'title', label: '제목' },
-    {
-      key: 'category',
-      label: '카테고리',
-      width: '110px',
-      render: (val) =>
-        CATEGORY_OPTIONS.find((c) => c.value === val)?.label || val,
-    },
+    { key: 'assetNumber', label: '관리번호' },
+    { key: 'assetName',   label: '품명' },
+    { key: 'acquiredDate', label: '취득일자', width: '100px', render: (val) => val || '-' },
+    { key: 'location',    label: '위치', width: '80px' },
     {
       key: 'status',
       label: '상태',
-      width: '90px',
+      width: '80px',
       render: (val) => (
-        <span className={`badge badge-${val}`}>
-          {STATUS_OPTIONS.find((s) => s.value === val)?.label || val}
-        </span>
+        <span className={`badge badge-${val}`}>{val}</span>
       ),
-    },
-    {
-      key: 'updatedAt',
-      label: '수정일',
-      width: '150px',
-      render: (val) => formatDate(val),
     },
   ];
 
   return (
-    <PageLayout title={isEditing ? '데이터 수정' : '데이터 등록'}>
-      {/* 입력 폼 */}
-      <Card title={isEditing ? `수정 중: ${editingItem.title}` : '새 항목 등록'}>
+    <PageLayout title={isEditing ? '자산 수정' : '자산 등록'}>
+      <Card title={isEditing ? `수정 중: ${editingItem.assetName}` : '새 자산 등록'}>
         {isEditing && (
           <div className="edit-notice">
-            ✏️ 수정 모드입니다. 변경 후 저장하거나 취소하세요.
+            수정 모드입니다. 변경 후 저장하거나 취소하세요.
           </div>
         )}
         <form onSubmit={handleSubmit} className="data-form">
-          <div className="form-row">
+          <div className="form-row form-row-2col">
             <Input
-              label="제목"
-              name="title"
-              value={form.title}
+              label="관리번호"
+              name="assetNumber"
+              value={form.assetNumber}
               onChange={handleChange}
-              placeholder="제목을 입력하세요"
+              placeholder="예: 2023-001234"
               required
-              error={errors.title}
+              error={errors.assetNumber}
+            />
+            <Input
+              label="품명"
+              name="assetName"
+              value={form.assetName}
+              onChange={handleChange}
+              placeholder="예: 노트북"
+              required
+              error={errors.assetName}
             />
           </div>
           <div className="form-row form-row-2col">
-            <Select
-              label="카테고리"
-              name="category"
-              value={form.category}
+            <Input
+              label="취득일자"
+              name="acquiredDate"
+              type="date"
+              value={form.acquiredDate}
               onChange={handleChange}
-              options={CATEGORY_OPTIONS}
-              placeholder=""
-              required
-              error={errors.category}
             />
+            <Input
+              label="위치"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              placeholder="창고"
+            />
+          </div>
+          <div className="form-row">
             <Select
               label="상태"
               name="status"
@@ -167,12 +171,12 @@ export default function DataManager({
             />
           </div>
           <div className="form-row">
-            <label className="form-label">메모</label>
+            <label className="form-label">비고</label>
             <textarea
               name="memo"
               value={form.memo}
               onChange={handleChange}
-              placeholder="메모를 입력하세요 (선택)"
+              placeholder="비고 사항 (선택)"
               className="form-textarea"
               rows={3}
             />
@@ -193,14 +197,13 @@ export default function DataManager({
         </form>
       </Card>
 
-      {/* 등록 목록 */}
       <Card title={`등록 목록 (${items.length}건)`} className="mt-24">
         <Table
           columns={tableColumns}
           data={items}
           onEdit={onStartEdit}
           onDelete={(row) => onDelete(row.id)}
-          emptyText="등록된 데이터가 없습니다. 위 폼에서 등록하세요."
+          emptyText="등록된 자산이 없습니다. 위 폼에서 등록하세요."
         />
       </Card>
     </PageLayout>

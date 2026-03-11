@@ -1,18 +1,10 @@
-export const APP_TITLE = 'Business Template';
+export const APP_TITLE = '안산영업소 창고 자산';
 
-export const STORAGE_KEY = 'biz_template_items';
-
-export const CATEGORY_OPTIONS = [
-  { value: 'general', label: '일반' },
-  { value: 'work', label: '업무' },
-  { value: 'project', label: '프로젝트' },
-  { value: 'personal', label: '개인' },
-  { value: 'etc', label: '기타' },
-];
+export const STORAGE_KEY = 'ansan_asset_items';
 
 export const STATUS_OPTIONS = [
-  { value: 'active', label: '활성' },
-  { value: 'inactive', label: '비활성' },
-  { value: 'pending', label: '대기' },
-  { value: 'done', label: '완료' },
+  { value: '보관중', label: '보관중' },
+  { value: '사용중', label: '사용중' },
+  { value: '고장',   label: '고장' },
+  { value: '불명',   label: '불명' },
 ];

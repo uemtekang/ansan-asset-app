@@ -6,18 +6,13 @@ export const MENU_CONFIG = [
   },
   {
     key: 'dataManager',
-    label: '데이터 관리',
+    label: '자산 등록',
     icon: '📝',
   },
   {
     key: 'searchList',
     label: '검색/목록',
     icon: '🔍',
-  },
-  {
-    key: 'analysis',
-    label: '분석',
-    icon: '📈',
   },
   {
     key: 'settings',
