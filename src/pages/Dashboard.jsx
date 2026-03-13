@@ -25,15 +25,19 @@ export default function Dashboard({ items, onNavigate }) {
     >
       {/* 통계 카드 */}
       <div className="stat-grid">
-        <Card className="stat-card">
-          <div className="stat-value">{total}</div>
-          <div className="stat-label">전체</div>
-        </Card>
-        {statusCounts.map((s) => (
-          <Card key={s.value} className={`stat-card stat-${s.value}`}>
-            <div className="stat-value">{s.count}</div>
-            <div className="stat-label">{s.label}</div>
+        <div className="stat-card-clickable" onClick={() => onNavigate('searchList', '')}>
+          <Card className="stat-card">
+            <div className="stat-value">{total}</div>
+            <div className="stat-label">전체</div>
           </Card>
+        </div>
+        {statusCounts.map((s) => (
+          <div key={s.value} className="stat-card-clickable" onClick={() => onNavigate('searchList', s.value)}>
+            <Card className={`stat-card stat-${s.value}`}>
+              <div className="stat-value">{s.count}</div>
+              <div className="stat-label">{s.label}</div>
+            </Card>
+          </div>
         ))}
       </div>
 

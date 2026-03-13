@@ -10,6 +10,7 @@ const fromDB = (row) => ({
   location: row.location || '',
   status: row.status,
   memo: row.memo || '',
+  imageUrl: row.image_url || null,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
@@ -23,6 +24,7 @@ const toDB = (item) => ({
   location: item.location || '',
   status: item.status,
   memo: item.memo || '',
+  image_url: item.imageUrl || null,
   created_at: item.createdAt,
   updated_at: item.updatedAt,
 });
@@ -66,6 +68,7 @@ export function useSupabaseAssets() {
         location: formData.location || '',
         status: formData.status,
         memo: formData.memo || '',
+        image_url: formData.imageUrl || null,
         updated_at: now,
       })
       .eq('id', id);

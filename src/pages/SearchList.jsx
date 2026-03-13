@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Input from '../components/common/Input';
 import Select from '../components/common/Select';
 import Card from '../components/common/Card';
 import Table from '../components/common/Table';
 import Button from '../components/common/Button';
 import PageLayout from '../components/layout/PageLayout';
+import ImageModal from '../components/common/ImageModal';
 import { STATUS_OPTIONS } from '../utils/constants';
 
 const SORT_OPTIONS = [
@@ -16,10 +17,16 @@ const SORT_OPTIONS = [
 
 const ALL_OPTION = { value: '', label: '전체' };
 
-export default function SearchList({ items, onStartEdit, onDelete }) {
+export default function SearchList({ items, onStartEdit, onDelete, initialStatus = '', onViewDetail }) {
   const [keyword, setKeyword] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus] = useState(initialStatus);
   const [sortKey, setSortKey] = useState('acquiredDate_desc');
+  const [modalImage, setModalImage] = useState(null);
+
+  useEffect(() => {
+    setFilterStatus(initialStatus);
+    setKeyword('');
+  }, [initialStatus]);
 
   const filtered = useMemo(() => {
     let result = [...items];
@@ -58,6 +65,26 @@ export default function SearchList({ items, onStartEdit, onDelete }) {
   };
 
   const columns = [
+    {
+      key: 'imageUrl',
+      label: '사진',
+      width: '56px',
+      render: (val) =>
+        val ? (
+          <img
+            src={val}
+            alt="사진"
+            className="asset-thumbnail"
+            style={{ cursor: 'zoom-in' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setModalImage(val);
+            }}
+          />
+        ) : (
+          <div className="asset-thumbnail-placeholder">📦</div>
+        ),
+    },
     { key: 'assetNumber', label: '관리번호' },
     { key: 'assetName',   label: '품명' },
     { key: 'acquiredDate', label: '취득일자', width: '100px', render: (val) => val || '-' },
@@ -113,9 +140,19 @@ export default function SearchList({ items, onStartEdit, onDelete }) {
           data={filtered}
           onEdit={onStartEdit}
           onDelete={(row) => onDelete(row.id)}
+          onRowClick={onViewDetail ? (row) => onViewDetail(row.id) : undefined}
           emptyText="검색 결과가 없습니다."
         />
       </Card>
+
+      {/* 이미지 확대 모달 */}
+      {modalImage && (
+        <ImageModal
+          src={modalImage}
+          alt="자산 사진"
+          onClose={() => setModalImage(null)}
+        />
+      )}
     </PageLayout>
   );
 }

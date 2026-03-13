@@ -4,6 +4,7 @@ import Sidebar from './components/layout/Sidebar';
 import Dashboard from './pages/Dashboard';
 import DataManager from './pages/DataManager';
 import SearchList from './pages/SearchList';
+import AssetDetail from './pages/AssetDetail';
 import Settings from './pages/Settings';
 import { useSupabaseAssets } from './hooks/useSupabaseAssets';
 import { generateId } from './utils/helpers';
@@ -16,9 +17,13 @@ export default function App() {
     useSupabaseAssets();
   const [currentPage, setCurrentPage] = useState('searchList');
   const [editingItem, setEditingItem] = useState(null);
+  const [searchStatus, setSearchStatus] = useState('');
+  const [selectedAssetId, setSelectedAssetId] = useState(null);
 
-  const handleNavigate = (page) => {
+  const handleNavigate = (page, param = '') => {
     setCurrentPage(page);
+    if (page === 'searchList') setSearchStatus(param);
+    if (page === 'assetDetail') setSelectedAssetId(param);
     if (page !== 'dataManager') setEditingItem(null);
   };
 
@@ -107,7 +112,21 @@ export default function App() {
         );
       case 'searchList':
         return (
-          <SearchList items={items} onStartEdit={startEditItem} onDelete={handleDeleteItem} />
+          <SearchList
+            items={items}
+            onStartEdit={startEditItem}
+            onDelete={handleDeleteItem}
+            initialStatus={searchStatus}
+            onViewDetail={(id) => handleNavigate('assetDetail', id)}
+          />
+        );
+      case 'assetDetail':
+        return (
+          <AssetDetail
+            assetId={selectedAssetId}
+            onNavigate={handleNavigate}
+            onStartEdit={startEditItem}
+          />
         );
       case 'settings':
         return (

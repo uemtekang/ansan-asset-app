@@ -12,6 +12,7 @@ export default function Table({
   data = [],
   onEdit,
   onDelete,
+  onRowClick,
   emptyText = '데이터가 없습니다.',
 }) {
   const hasActions = onEdit || onDelete;
@@ -41,14 +42,18 @@ export default function Table({
             </tr>
           ) : (
             data.map((row, rowIdx) => (
-              <tr key={row.id || rowIdx}>
+              <tr
+                key={row.id || rowIdx}
+                className={onRowClick ? 'tr-clickable' : ''}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+              >
                 {columns.map((col) => (
                   <td key={col.key}>
                     {col.render ? col.render(row[col.key], row) : row[col.key]}
                   </td>
                 ))}
                 {hasActions && (
-                  <td className="table-actions">
+                  <td className="table-actions" onClick={(e) => e.stopPropagation()}>
                     {onEdit && (
                       <button
                         className="btn btn-secondary btn-sm"

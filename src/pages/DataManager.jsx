@@ -6,6 +6,7 @@ import Card from '../components/common/Card';
 import Table from '../components/common/Table';
 import PageLayout from '../components/layout/PageLayout';
 import { STATUS_OPTIONS } from '../utils/constants';
+import { supabase } from '../lib/supabase';
 
 const EMPTY_FORM = {
   assetNumber: '',
@@ -14,6 +15,7 @@ const EMPTY_FORM = {
   location: '창고',
   status: '보관중',
   memo: '',
+  imageUrl: '',
 };
 
 export default function DataManager({
@@ -27,21 +29,29 @@ export default function DataManager({
 }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploading, setUploading] = useState(false);
   const isEditing = !!editingItem;
 
   useEffect(() => {
     if (editingItem) {
       setForm({
-        assetNumber: editingItem.assetNumber || '',
-        assetName:   editingItem.assetName   || '',
+        assetNumber:  editingItem.assetNumber  || '',
+        assetName:    editingItem.assetName    || '',
         acquiredDate: editingItem.acquiredDate || '',
-        location:    editingItem.location    || '창고',
-        status:      editingItem.status      || '보관중',
-        memo:        editingItem.memo        || '',
+        location:     editingItem.location     || '창고',
+        status:       editingItem.status       || '보관중',
+        memo:         editingItem.memo         || '',
+        imageUrl:     editingItem.imageUrl     || '',
       });
+      setImageFile(null);
+      setImagePreview('');
       setErrors({});
     } else {
       setForm(EMPTY_FORM);
+      setImageFile(null);
+      setImagePreview('');
       setErrors({});
     }
   }, [editingItem]);
@@ -52,6 +62,19 @@ export default function DataManager({
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleImageRemove = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setForm((prev) => ({ ...prev, imageUrl: '' }));
+  };
+
   const validate = () => {
     const newErrors = {};
     if (!form.assetNumber.trim()) newErrors.assetNumber = '관리번호를 입력하세요.';
@@ -60,19 +83,47 @@ export default function DataManager({
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
+    let imageUrl = form.imageUrl || '';
+
+    if (imageFile) {
+      setUploading(true);
+      const safeName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const fileName = `${Date.now()}_${safeName}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('asset-images')
+        .upload(fileName, imageFile, { upsert: true });
+
+      if (uploadError) {
+        alert('사진 업로드 실패: ' + uploadError.message);
+        setUploading(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('asset-images')
+        .getPublicUrl(uploadData.path);
+      imageUrl = urlData.publicUrl;
+      setUploading(false);
+    }
+
+    const submitForm = { ...form, imageUrl };
+
     if (isEditing) {
-      onUpdate(editingItem.id, form);
+      onUpdate(editingItem.id, submitForm);
     } else {
-      onAdd(form);
+      onAdd(submitForm);
     }
     setForm(EMPTY_FORM);
+    setImageFile(null);
+    setImagePreview('');
     setErrors({});
   };
 
@@ -85,16 +136,21 @@ export default function DataManager({
         location:     editingItem.location     || '창고',
         status:       editingItem.status       || '보관중',
         memo:         editingItem.memo         || '',
+        imageUrl:     editingItem.imageUrl     || '',
       });
     } else {
       setForm(EMPTY_FORM);
     }
+    setImageFile(null);
+    setImagePreview('');
     setErrors({});
   };
 
   const handleCancelEdit = () => {
     onCancelEdit();
     setForm(EMPTY_FORM);
+    setImageFile(null);
+    setImagePreview('');
     setErrors({});
   };
 
@@ -181,9 +237,38 @@ export default function DataManager({
               rows={3}
             />
           </div>
+          <div className="form-row">
+            <label className="form-label">사진</label>
+            <label className="photo-upload-label">
+              사진 선택
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleImageChange}
+              />
+            </label>
+            {(imagePreview || form.imageUrl) && (
+              <div className="photo-upload-preview">
+                <img
+                  src={imagePreview || form.imageUrl}
+                  alt="미리보기"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleImageRemove}
+                  style={{ marginTop: '6px' }}
+                >
+                  사진 삭제
+                </Button>
+              </div>
+            )}
+          </div>
           <div className="form-actions">
-            <Button type="submit" variant="primary">
-              {isEditing ? '수정 저장' : '등록'}
+            <Button type="submit" variant="primary" disabled={uploading}>
+              {uploading ? '업로드 중...' : (isEditing ? '수정 저장' : '등록')}
             </Button>
             <Button type="button" variant="secondary" onClick={handleReset}>
               초기화
